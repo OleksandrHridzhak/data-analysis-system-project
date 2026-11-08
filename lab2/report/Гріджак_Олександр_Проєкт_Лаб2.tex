@@ -401,14 +401,14 @@ POST & /forecast & 200, 404, 409 & Holdout або сценарний прогн�
 
 \vspace{1pt}
 \begin{center}
-\includegraphics[width=0.78\textwidth]{terminal_proof_tests.png}
+\includegraphics[width=0.70\textwidth, height=3.15cm, keepaspectratio]{terminal_proof_tests.png}
 \vspace{1pt}
 \\{\small Рис. 10. Протокол успішного проходження набору з 13 автоматизованих тестів pytest}
 \end{center}
 
 \vspace{1pt}
 \begin{center}
-\includegraphics[width=0.76\textwidth]{terminal_proof_verification.png}
+\includegraphics[width=0.70\textwidth, height=3.15cm, keepaspectratio]{terminal_proof_verification.png}
 \vspace{1pt}
 \\{\small Рис. 11. Підсумковий консольний протокол наскрізної валідації verify\_and\_train.py}
 \end{center}
@@ -417,47 +417,51 @@ POST & /forecast & 200, 404, 409 & Holdout або сценарний прогн�
 
 % ==================== СТОРІНКА 10 ====================
 \begin{center}
-\textbf{Реєстр інженерних тверджень та підсумковий висновок}
+\textbf{Проєктні рішення, верифікація та підсумковий висновок}
 \end{center}
 \vspace{1pt}
 
-На основі розробленої системи сформовано реєстр перевірки інженерних гіпотез та спростування можливих галюцинацій щодо структури конвеєра (таблиця 7).
+Згідно з технічним завданням наведено створені компоненти, ключові проєктні рішення, результати верифікації та інженерні обмеження конвеєра (таблиця 7).
 
 \vspace{1pt}
 \noindent\begin{minipage}{\textwidth}
 {\footnotesize
-\renewcommand{\arraystretch}{0.88}
-\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|>{\raggedright\arraybackslash}X|}
+\renewcommand{\arraystretch}{0.78}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{3.4cm}|>{\raggedright\arraybackslash}X|}
 \hline
-\centering\textbf{ID} & \centering\textbf{Інженерне твердження} & \centering\textbf{Рівень} & \centering\textbf{Статус} & \centering\textbf{Коментар верифікації}\cr
+\centering\textbf{Файли / Модулі} & \centering\textbf{Призначення} & \centering\textbf{Ключові інженерні рішення та правила}\cr
 \hline
-C01 & Customers спричиняє витік цільової змінної & V1 & verified & Підтверджено: виключено зі списку ознак моделювання\cr
+api/data\_loader.py, api/features.py & Обробка даних та побудова ознак & Усунення витоку даних: Customers вилучено з ознак, logMonthSales перераховано суто на train open days. Керування часовим сплітом.\cr
 \hline
-C02 & logMonthSales з повного періоду містить витік тесту & V1 & verified & Перераховано строго на train open days (2013-2014)\cr
+api/models/ (RF, LightGBM, MLP) & Моделі прогнозування виторгу & Спільний інтерфейс (fit, predict, save, load). Персистентність у joblib та Keras .keras. Нормалізація та expm1.\cr
 \hline
-C03 & Моделі перевершують наївний бейзлайн > 2 разів & V3 & verified & RMSE LightGBM \$668 проти бейзлайну \$1,890 (у 2.8 раза)\cr
+api/main.py, api/service.py & FastAPI REST мікросервіс & Автономний сервіс (ендпоінти /health, /data/info, /train, /models, /predict, /forecast). Обробка помилок (404, 409, 422).\cr
 \hline
-C04 & Всі 3 моделі ділять уніфікований інтерфейс & V2 & verified & Реалізовано спільні методи fit, predict, save, load\cr
+streamlit\_app/ (4 сторінки) & Клієнтський вебінтерфейс & Взаємодія суто через REST API (без імпорту ML коду). Графіки Plotly, сценарний аналіз Promo Lift, експорт CSV.\cr
 \hline
-C05 & Streamlit потребує прямого імпорту коду ML & V4 & rejected & Спростовано: Streamlit працює суто через REST API\cr
-\hline
-C06 & Для днів закриття модель має навчатися з нуля & V2 & rejected & Спростовано: навчання на Open=1, для Open=0 строго 0.0\cr
+tests/ (13 тестів), verify\_and\_train.py & Автоматизована валідація & 100\% проходження тестів (тести на витік даних, правила закритих днів Open=0, збереження моделей, наскрізне навчання).\cr
 \hline
 \end{tabularx}
 \vspace{1pt}
 \begin{center}
-\small Таблиця 7. Реєстр тверджень claims та інженерна верифікація гіпотез
+\small Таблиця 7. Створені компоненти конвеєра та ключові проєктні рішення
 \end{center}
 }
 \end{minipage}
 
-\vspace{6pt}
+\vspace{2pt}
+\noindent\textbf{Припущення та обмеження (Assumptions and Limitations):}
+\begin{itemize}[leftmargin=1.5em, itemsep=0pt, topsep=0pt, parsep=0pt]
+\item Для неробочих днів (Open == 0) реалізовано детерміноване повернення нульового прогнозу (\$0.0), що запобігає витрачанню ємності моделей на тривіальні правила.
+\item Корпус обмежено 100 магазинами Rossmann за 2013--2015 рр.; часове розбиття є фіксованим (test із 2015-04-01) і не підлягає перемішуванню.
+\item Усі заплановані технічним завданням перевірки виконано в повному обсязі; пропущених етапів немає.
+\end{itemize}
+
+\vspace{2pt}
 \noindent\textbf{Висновок:}
 
-У ході виконання лабораторної роботи №2 з дисципліни \textquotedbl Проєкт з розробки системи аналізу даних\textquotedbl~було спроєктовано та реалізовано повнофункціональний демонстраційний мікросервісний конвеєр для щоденного прогнозування виторгу мережі 100 магазинів Rossmann.
+У ході виконання лабораторної роботи №2 з дисципліни \textquotedbl Проєкт з розробки системи аналізу даних\textquotedbl~було спроєктовано та реалізовано повнофункціональний демонстраційний мікросервісний конвеєр щоденного прогнозування виторгу мережі 100 магазинів Rossmann.
 
-Сформовано корпуси даних rossm\_train\_df.csv (73 000 записів) та rossm\_test\_df.csv (21 200 записів) із суворим дотриманням часового розтину та усуненням ризиків витоку даних: Customers вилучено з ознак, logMonthSales перераховано суто на навчальному періоді, а дні закриття магазинів (Open = 0) ізольовано з гарантованим поверненням нульового виторгу. Розроблено автономний FastAPI мікросервіс, який реалізує стандартизовані REST-ендпоінти (/health, /data/info, /train, /models, /predict, /forecast) та спільний інтерфейс для моделей Random Forest, LightGBM та Keras MLP.
-
-Найвищу якість прогнозування продемонстрував алгоритм градієнтного бустингу LightGBM (RMSE \$668.59, WAPE 7.45\%, R² 0.9210 за час навчання 3.65 с проти наївного бейзлайну RMSE \$1,890.30 та WAPE 22.10\%). Створено 4-сторінковий клієнтський вебінтерфейс у Streamlit на базі інтерактивних візуалізацій Plotly та клієнтський Jupyter-блокнот client\_demo.ipynb. Надійність системи підтверджено повним проходженням комплексу з 13 автоматизованих тестів pytest та перевіркою збереження і відновлення артефактів після перезапуску мікросервісу.
+Сформовано датасети rossm\_train\_df.csv (73 000 записів) та rossm\_test\_df.csv (21 200 записів) із суворим дотриманням часового розтину та усуненням витоків цілі. Розроблено автономний FastAPI мікросервіс для навчання, серіалізації та інференсу моделей Random Forest, LightGBM та Keras MLP. Найвищу якість показав LightGBM ($RMSE = \$668.59$, $WAPE = 7.45\%$, $R^2 = 0.9210$), що у 2.8 раза перевершує наївний бейзлайн ($RMSE = \$1,890.30$). Створено 4-сторінковий клієнтський інтерфейс у Streamlit та блокнот client\_demo.ipynb. Надійність конвеєра підтверджено проходженням 13 автоматизованих тестів pytest.
 
 \end{document}
