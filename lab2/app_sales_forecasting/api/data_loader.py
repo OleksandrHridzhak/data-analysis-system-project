@@ -12,9 +12,21 @@ from typing import Tuple, Dict, Any, List
 import numpy as np
 import pandas as pd
 
-# Default data path relative to this file
-DEFAULT_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
-DATA_DIR = os.getenv("DATA_DIR", DEFAULT_DATA_DIR)
+def find_data_dir() -> str:
+    candidates = [
+        os.getenv("DATA_DIR", ""),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "repo", "lab2", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "lab2", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "data")),
+    ]
+    for d in candidates:
+        if d and os.path.exists(os.path.join(d, "rossm_train_df.csv")):
+            return d
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
+
+DATA_DIR = find_data_dir()
 
 CANDIDATE_NUMERICAL = ["Promo", "SchoolHoliday", "logMonthSales", "CompetitionDistance"]
 CANDIDATE_CATEGORICAL = ["Store", "StateHoliday", "StoreType", "Assortment", "weekday", "monthday", "month"]

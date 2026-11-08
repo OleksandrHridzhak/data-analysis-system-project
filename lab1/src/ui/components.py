@@ -45,6 +45,8 @@ def plot_actual_vs_predicted(df: pd.DataFrame, sample_size: int = 2000) -> go.Fi
         xaxis=dict(tickformat="$,.0f"),
         yaxis=dict(tickformat="$,.0f"),
         height=520,
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True,
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
     )
     return fig
@@ -84,6 +86,8 @@ def plot_residuals(df: pd.DataFrame, sample_size: int = 2000) -> go.Figure:
         xaxis=dict(tickformat="$,.0f"),
         yaxis=dict(tickformat="$,.0f"),
         template="plotly_white",
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True,
         height=480
     )
     return fig
@@ -109,7 +113,9 @@ def plot_feature_importance(df_importance: pd.DataFrame) -> go.Figure:
         height=520,
         yaxis=dict(title=""),
         xaxis=dict(title="Relative Importance Score"),
-        coloraxis_showscale=False
+        coloraxis_showscale=False,
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True
     )
     return fig
 
@@ -148,6 +154,8 @@ def plot_sensitivity_curve(df_sens: pd.DataFrame, feature_name: str, base_val: f
         yaxis_title="Predicted Price ($)",
         yaxis=dict(tickformat="$,.0f"),
         template="plotly_white",
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True,
         height=460,
         legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01)
     )
@@ -185,6 +193,8 @@ def plot_categorical_comparison(df_cat: pd.DataFrame, cat_col: str) -> go.Figure
         yaxis_title="Price ($)",
         yaxis=dict(tickformat="$,.0f"),
         template="plotly_white",
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True,
         height=450,
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99)
     )

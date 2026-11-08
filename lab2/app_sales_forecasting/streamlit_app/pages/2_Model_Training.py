@@ -18,18 +18,25 @@ st.markdown("Запуск тренування моделей машинного
 
 client = SalesForecastingAPIClient()
 
+DEFAULT_CANDIDATE_FEATURES = [
+    "Promo", "SchoolHoliday", "logMonthSales", "CompetitionDistance",
+    "Store", "StateHoliday", "StoreType", "Assortment", "weekday", "monthday", "month"
+]
+
 # Check service connection
 health = client.check_health()
-if health.get("status") != "ok":
-    st.error("⚠️ FastAPI мікросервіс недоступний! Переконайтесь, що бекенд запущено на `http://127.0.0.1:8000`.")
-    st.stop()
+service_online = (health.get("status") == "ok")
 
-# Load data info from API
-try:
-    data_info = client.get_data_info()
-except Exception as e:
-    st.error(f"Помилка отримання метаданих через API: {e}")
-    st.stop()
+if not service_online:
+    st.warning("⚠️ **FastAPI мікросервіс наразі недоступний!** Запустіть бекенд командою `uvicorn api.main:app --port 8000` в папці `app_sales_forecasting`. Відображаються базові параметри за замовчуванням.")
+
+# Load data info from API or use fallback
+data_info = {}
+if service_online:
+    try:
+        data_info = client.get_data_info()
+    except Exception as e:
+        st.warning(f"Не вдалося отримати динамічні метадані через API: {e}. Використовуються конфігурації за замовчуванням.")
 
 st.sidebar.header("Параметри моделювання")
 
@@ -44,7 +51,7 @@ default_name = f"{model_type}_v1"
 model_name = st.sidebar.text_input("Назва моделі", value=default_name)
 
 # 2. Features selection
-all_features = data_info.get("all_candidate_features", [])
+all_features = data_info.get("all_candidate_features", DEFAULT_CANDIDATE_FEATURES)
 selected_features = st.sidebar.multiselect(
     "Ознаки для навчання (Features)",
     options=all_features,
@@ -97,6 +104,10 @@ with col_info:
     st.info(f"Обрано алгоритм: **{model_type}** | Кількість ознак: **{len(selected_features)}** | Модель зберігається на сервері під іменем `{model_name}`.")
 
 if train_clicked:
+    if not service_online:
+        st.error("Помилка: FastAPI мікросервіс наразі недоступний на http://127.0.0.1:8000. Будь ласка, запустіть uvicorn перед початком тренування.")
+        st.stop()
+
     if not selected_features:
         st.error("Помилка: не обрано жодної ознаки для навчання.")
         st.stop()
@@ -165,6 +176,7 @@ if res:
                 title=f"Важливість вихідних ознак ({res['model_type']})",
                 color="Importance", color_continuous_scale="Purples"
             )
+            fig_fi.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
             st.plotly_chart(fig_fi, use_container_width=True)
         else:
             st.info("Feature importance доступна для моделей Random Forest та LightGBM.")
@@ -185,7 +197,9 @@ if res:
                 title=f"Крива навчання (Learning Curve) - {res['model_type']}",
                 xaxis_title="Ітерація / Епоха",
                 yaxis_title="RMSE / MAE Loss",
-                template="plotly_white"
+                template="plotly_white",
+                margin=dict(l=30, r=20, t=50, b=30),
+                autosize=True
             )
             st.plotly_chart(fig_lc, use_container_width=True)
         else:
@@ -207,25 +221,33 @@ if res:
 
             c_scat, c_resid = st.columns(2)
             with c_scat:
-                fig_scat = px.scatter(
-                    df_diag, x="actual_sales", y="predicted_sales",
-                    title="Actual vs Predicted Sales (Test Sample)",
-                    labels={"actual_sales": "Фактичний виторг ($)", "predicted_sales": "Прогнозний виторг ($)"},
-                    opacity=0.7, color="Store"
-                )
-                max_val = max(df_diag["actual_sales"].max(), df_diag["predicted_sales"].max())
-                fig_scat.add_trace(go.Scatter(x=[0, max_val], y=[0, max_val], mode="lines", name="Ідеальна лінія", line=dict(color="red", dash="dash")))
-                st.plotly_chart(fig_scat, use_container_width=True)
+                if not df_diag.empty:
+                    fig_scat = px.scatter(
+                        df_diag, x="actual_sales", y="predicted_sales",
+                        title="Actual vs Predicted Sales (Test Sample)",
+                        labels={"actual_sales": "Фактичний виторг ($)", "predicted_sales": "Прогнозний виторг ($)"},
+                        opacity=0.7, color="Store"
+                    )
+                    max_val = max(df_diag["actual_sales"].max(), df_diag["predicted_sales"].max())
+                    fig_scat.add_trace(go.Scatter(x=[0, max_val], y=[0, max_val], mode="lines", name="Ідеальна лінія", line=dict(color="red", dash="dash")))
+                    fig_scat.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
+                    st.plotly_chart(fig_scat, use_container_width=True)
+                else:
+                    st.info("Немає відкритих днів у тестовій вибірці для Actual vs Predicted.")
 
             with c_resid:
-                df_diag["residual"] = df_diag["actual_sales"] - df_diag["predicted_sales"]
-                fig_res = px.histogram(
-                    df_diag, x="residual", nbins=30,
-                    title="Розподіл залишків (Residual Distribution: Actual - Predicted)",
-                    color_discrete_sequence=["#ff7f0e"],
-                    marginal="rug"
-                )
-                st.plotly_chart(fig_res, use_container_width=True)
+                if not df_diag.empty:
+                    df_diag["residual"] = df_diag["actual_sales"] - df_diag["predicted_sales"]
+                    fig_res = px.histogram(
+                        df_diag, x="residual", nbins=30,
+                        title="Розподіл залишків (Residual Distribution: Actual - Predicted)",
+                        color_discrete_sequence=["#ff7f0e"],
+                        marginal="rug"
+                    )
+                    fig_res.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
+                    st.plotly_chart(fig_res, use_container_width=True)
+                else:
+                    st.info("Немає записів для побудови залишків.")
         except Exception as err:
             st.warning(f"Діагностичні графіки пропущено: {err}")
 

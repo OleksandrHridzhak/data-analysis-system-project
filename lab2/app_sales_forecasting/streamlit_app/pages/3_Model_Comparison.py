@@ -74,7 +74,19 @@ if not comp_df.empty:
         text="raw_metric",
         labels={"raw_metric": metric_to_plot}
     )
-    fig_bar.update_traces(texttemplate='%{text:.3f}', textposition='outside')
+    fig_bar.update_traces(texttemplate='%{text:.3f}', textposition='outside', cliponaxis=False)
+    
+    # Ensure text annotations never clip or overflow top of chart
+    val_series = pd.to_numeric(comp_df["raw_metric"], errors="coerce").dropna()
+    if not val_series.empty:
+        v_max = float(val_series.max())
+        v_min = float(val_series.min())
+        v_pad = max(abs(v_max) * 0.20, 0.05)
+        y_lower = min(0.0, v_min - v_pad if v_min < 0 else 0.0)
+        y_upper = v_max + v_pad
+        fig_bar.update_layout(yaxis=dict(range=[y_lower, y_upper]))
+
+    fig_bar.update_layout(margin=dict(l=30, r=30, t=60, b=30), autosize=True)
     st.plotly_chart(fig_bar, use_container_width=True)
 
 st.divider()
@@ -131,7 +143,9 @@ if st.button("📊 Відобразити часовий графік прогн
             xaxis_title="Дата",
             yaxis_title="Виторг ($)",
             hovermode="x unified",
-            template="plotly_white"
+            template="plotly_white",
+            margin=dict(l=30, r=20, t=50, b=30),
+            autosize=True
         )
         st.plotly_chart(fig_overlay, use_container_width=True)
 

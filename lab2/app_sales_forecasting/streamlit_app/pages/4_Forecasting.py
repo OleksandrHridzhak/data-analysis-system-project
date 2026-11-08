@@ -104,7 +104,9 @@ with tab_holdout:
                             title=f"Фактичний та прогнозний щоденний виторг ({h_range[0]} – {h_range[1]})",
                             xaxis_title="Дата",
                             yaxis_title="Виторг ($)",
-                            template="plotly_white"
+                            template="plotly_white",
+                            margin=dict(l=30, r=20, t=50, b=30),
+                            autosize=True
                         )
                         st.plotly_chart(fig_h, use_container_width=True)
 
@@ -219,7 +221,9 @@ with tab_scenario:
                         title=f"Прогнозовані продажі: Сценарій vs Альтернативний Promo (Магазин №{s_store})",
                         xaxis_title="Дата",
                         yaxis_title="Очікуваний щоденний виторг ($)",
-                        template="plotly_white"
+                        template="plotly_white",
+                        margin=dict(l=30, r=20, t=50, b=30),
+                        autosize=True
                     )
                     st.plotly_chart(fig_scen, use_container_width=True)
 

@@ -15,7 +15,21 @@ st.set_page_config(page_title="EDA | Rossmann Sales", page_icon="📊", layout="
 st.title("📊 Дослідницький аналіз даних (EDA)")
 st.markdown("Аналіз набору даних 100 магазинів мережі Rossmann згідно з методикою лабораторної роботи.")
 
-DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data"))
+def find_data_dir():
+    candidates = [
+        os.getenv("DATA_DIR", ""),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "data")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "repo", "lab2", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "lab2", "data")),
+        os.path.abspath(os.path.join(os.getcwd(), "data")),
+    ]
+    for d in candidates:
+        if d and os.path.exists(os.path.join(d, "rossm_train_df.csv")):
+            return d
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "data"))
+
+DATA_DIR = find_data_dir()
 
 
 @st.cache_data
@@ -45,9 +59,12 @@ only_open = st.sidebar.checkbox("Лише відкриті дні (Open == 1)", 
 
 # Apply filters
 filtered_df = df.copy()
-if len(date_range) == 2:
+if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
     start_d, end_d = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
     filtered_df = filtered_df[(filtered_df["Date"] >= start_d) & (filtered_df["Date"] <= end_d)]
+elif isinstance(date_range, (list, tuple)) and len(date_range) == 1:
+    start_d = pd.to_datetime(date_range[0])
+    filtered_df = filtered_df[filtered_df["Date"] >= start_d]
 
 if selected_stores:
     filtered_df = filtered_df[filtered_df["Store"].isin(selected_stores)]
@@ -82,7 +99,7 @@ with c1:
         color_discrete_sequence=["#1f77b4"],
         marginal="box"
     )
-    fig_sales.update_layout(bargap=0.1)
+    fig_sales.update_layout(bargap=0.1, margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_sales, use_container_width=True)
 
 with c2:
@@ -92,7 +109,7 @@ with c2:
         color_discrete_sequence=["#2ca02c"],
         marginal="box"
     )
-    fig_log.update_layout(bargap=0.1)
+    fig_log.update_layout(bargap=0.1, margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_log, use_container_width=True)
 
 st.divider()
@@ -110,26 +127,34 @@ fig_ts = px.line(
     labels={"Sales": "Сумарні продажі ($)", "Date": "Дата"}
 )
 fig_ts.update_traces(line_color="#ff7f0e", line_width=2)
+fig_ts.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
 st.plotly_chart(fig_ts, use_container_width=True)
 
 c_top, c_stores = st.columns([1, 2])
 with c_top:
     top_stores = filtered_df.groupby("Store")["Sales"].sum().reset_index().sort_values("Sales", ascending=False).head(10)
+    top_stores["StoreName"] = top_stores["Store"].apply(lambda s: f"Store {s}")
     fig_top = px.bar(
-        top_stores, x="Sales", y="Store", orientation="h",
+        top_stores, x="Sales", y="StoreName", orientation="h",
         title="Топ-10 магазинів за загальним виторгом",
         color="Sales", color_continuous_scale="Viridis"
     )
-    fig_top.update_layout(yaxis={"categoryorder": "total ascending"})
+    fig_top.update_layout(
+        yaxis={"categoryorder": "total ascending", "type": "category"},
+        margin=dict(l=70, r=20, t=50, b=30),
+        autosize=True
+    )
     st.plotly_chart(fig_top, use_container_width=True)
 
 with c_stores:
     sample_stores = selected_stores if selected_stores else [1, 2, 3, 4, 5]
-    store_ts = filtered_df[filtered_df["Store"].isin(sample_stores)]
+    store_ts = filtered_df[filtered_df["Store"].isin(sample_stores)].copy()
+    store_ts["StoreName"] = store_ts["Store"].apply(lambda s: f"Store {s}")
     fig_store_ts = px.line(
-        store_ts, x="Date", y="Sales", color="Store",
-        title=f"Щоденний виторг для магазинів: {sample_stores}"
+        store_ts, x="Date", y="Sales", color="StoreName",
+        title=f"Щоденний виторг для обраних магазинів"
     )
+    fig_store_ts.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_store_ts, use_container_width=True)
 
 st.divider()
@@ -149,15 +174,22 @@ with c_box:
         title="Boxplot виторгу за днями тижня (розбиття за Promo)",
         color_discrete_map={"Без Promo": "#1f77b4", "З Promo": "#e377c2"}
     )
+    fig_box.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_box, use_container_width=True)
 
 with c_cat:
     cat_feature = st.selectbox("Категоріальна ознака для групування:", ["StoreType", "Assortment", "StateHoliday", "SchoolHoliday", "month"])
     cat_sales = filtered_df.groupby(cat_feature)["Sales"].mean().reset_index()
+    cat_sales[cat_feature] = cat_sales[cat_feature].astype(str)
     fig_cat_bar = px.bar(
         cat_sales, x=cat_feature, y="Sales",
         title=f"Середній виторг залежно від '{cat_feature}'",
         color="Sales", color_continuous_scale="Blues"
+    )
+    fig_cat_bar.update_layout(
+        xaxis={"type": "category"},
+        margin=dict(l=30, r=20, t=50, b=30),
+        autosize=True
     )
     st.plotly_chart(fig_cat_bar, use_container_width=True)
 
@@ -168,21 +200,33 @@ st.subheader("5. Взаємозв'язок виторгу з Customers та Comp
 c_cust, c_comp = st.columns(2)
 
 with c_cust:
-    fig_cust = px.scatter(
-        filtered_df.sample(min(len(filtered_df), 3000), random_state=42),
-        x="Customers", y="Sales", color="PromoLabel",
-        title="Sales vs Customers (Витік цільової змінної для EDA)",
-        trendline="ols",
-        opacity=0.6
-    )
+    cust_sample = filtered_df.sample(min(len(filtered_df), 3000), random_state=42)
+    try:
+        fig_cust = px.scatter(
+            cust_sample,
+            x="Customers", y="Sales", color="PromoLabel",
+            title="Sales vs Customers (Витік цільової змінної для EDA)",
+            trendline="ols",
+            opacity=0.6
+        )
+    except Exception:
+        fig_cust = px.scatter(
+            cust_sample,
+            x="Customers", y="Sales", color="PromoLabel",
+            title="Sales vs Customers (Витік цільової змінної для EDA)",
+            opacity=0.6
+        )
+    fig_cust.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_cust, use_container_width=True)
 
 with c_comp:
+    comp_sample = filtered_df.sample(min(len(filtered_df), 3000), random_state=42)
     fig_comp = px.scatter(
-        filtered_df.sample(min(len(filtered_df), 3000), random_state=42),
+        comp_sample,
         x="CompetitionDistance", y="Sales", color="StoreType",
         title="Sales vs CompetitionDistance (Відстань до конкурента)",
         log_x=True, opacity=0.6
     )
+    fig_comp.update_layout(margin=dict(l=30, r=20, t=50, b=30), autosize=True)
     st.plotly_chart(fig_comp, use_container_width=True)
 
