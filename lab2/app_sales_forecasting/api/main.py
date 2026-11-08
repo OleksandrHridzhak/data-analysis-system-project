@@ -245,3 +245,4 @@ def forecast(req: ForecastRequest):
         scenario_overrides=overrides
     )
     return ForecastResponse(**result)
+

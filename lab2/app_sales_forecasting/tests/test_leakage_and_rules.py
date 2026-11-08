@@ -70,3 +70,4 @@ def test_closed_days_forecast_zero(tmp_path):
     assert preds[0]["predicted_sales"] == 0.0
     assert preds[0]["predicted_log_sales"] == 0.0
     assert preds[0]["is_open"] == 0
+

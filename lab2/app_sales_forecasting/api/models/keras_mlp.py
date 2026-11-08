@@ -143,3 +143,4 @@ class KerasMLPModel(BaseModel):
         inst.model = tf.keras.models.load_model(model_path)
         inst.is_trained = True
         return inst
+

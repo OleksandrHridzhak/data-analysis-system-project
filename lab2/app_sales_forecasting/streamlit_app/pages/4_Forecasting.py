@@ -225,3 +225,4 @@ with tab_scenario:
 
                 except Exception as e:
                     st.error(f"Помилка моделювання сценарію: {e}")
+

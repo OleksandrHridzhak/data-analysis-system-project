@@ -228,3 +228,4 @@ if res:
                 st.plotly_chart(fig_res, use_container_width=True)
         except Exception as err:
             st.warning(f"Діагностичні графіки пропущено: {err}")
+

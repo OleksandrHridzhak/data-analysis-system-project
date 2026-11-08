@@ -1,315 +1,463 @@
 \documentclass[14pt,a4paper]{extarticle}
 
+% Підтримка шрифтів та української мови (виключно Times New Roman, жодного італіка)
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setdefaultlanguage{ukrainian}
-\setotherlanguage{english}
 \setmainfont{Times New Roman}
-\newfontfamily\cyrillicfont{Times New Roman}
-\newfontfamily\cyrillicfonttt{Courier New}
 
-\usepackage[left=25mm, right=15mm, top=18mm, bottom=18mm]{geometry}
-
+% Вимикаємо автопереноси
 \hyphenpenalty=10000
 \exhyphenpenalty=10000
 \emergencystretch=3.5em
 \sloppy
 
+% Поля сторінки: ліве 30 мм, праве 15 мм, верхнє 16 мм, нижнє 16 мм
+\usepackage[left=30mm, right=15mm, top=16mm, bottom=16mm]{geometry}
+
+% Міжрядковий інтервал 1.15
 \usepackage{setspace}
 \setstretch{1.15}
 
-\usepackage{amsmath,amssymb}
+% Графіка та таблиці
 \usepackage{graphicx}
-\usepackage{float}
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{array}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{titlesec}
-\usepackage{caption}
-\usepackage{fancyhdr}
+\setlength{\tabcolsep}{3pt}
+
+% Посилання
 \usepackage[hyphens]{url}
 \usepackage[hidelinks]{hyperref}
 \urlstyle{same}
 
-\titleformat{\section}{\bfseries\normalsize}{\thesection.}{0.5em}{}
-\titleformat{\subsection}{\bfseries\normalsize}{\thesection.\arabic{subsection}.}{0.5em}{}
+% Списки
+\usepackage{enumitem}
+\setlist{nosep, topsep=0pt, partopsep=0pt, parsep=0pt, itemsep=0pt}
 
-\titlespacing*{\section}{0pt}{10pt}{4pt}
-\titlespacing*{\subsection}{0pt}{6pt}{2pt}
-
-\captionsetup[figure]{name=Рис., justification=centering, labelsep=period, font=small}
-\captionsetup[table]{name=Таблиця, justification=raggedright, labelsep=period, font=small}
-
-\lstset{
-    basicstyle=\ttfamily\footnotesize,
-    keywordstyle=\color{blue}\bfseries,
-    commentstyle=\color{gray},
-    stringstyle=\color{purple},
-    numbers=left,
-    numberstyle=\tiny\color{gray},
-    stepnumber=1,
-    numbersep=5pt,
-    backgroundcolor=\color{white},
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    frame=single,
-    tabsize=2,
-    captionpos=b,
-    breaklines=true,
-    breakatwhitespace=false
-}
-
-\pagestyle{fancy}
-\fancyhf{}
-\fancyfoot[C]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\pagestyle{empty}
 
 \begin{document}
 
-% ----------------- СТОРІНКА 1: ТИТУЛЬНА -----------------
-\begin{titlepage}
+% ==================== СТОРІНКА 1: ТИТУЛЬНИЙ ЛИСТ ====================
 \begin{center}
-    {\bfseries МІНІСТЕРСТВО ОСВІТИ І НАУКИ УКРАЇНИ}\\[0.2cm]
-    {\bfseries ЛЬВІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ ІМЕНІ ІВАНА ФРАНКА}\\[0.2cm]
-    {\bfseries Факультет електроніки та комп'ютерних технологій}\\[0.2cm]
-    Кафедра системного проектування\\[2.5cm]
-
-    {\large\bfseries ЗВІТ}\\[0.3cm]
-    {\large з лабораторної роботи №2}\\[0.2cm]
-    {\large з дисципліни}\\[0.2cm]
-    {\bfseries «Проєкт з розробки системи аналізу даних»}\\[0.6cm]
-    {\large на тему:}\\[0.3cm]
-    {\bfseries «Розробка повноцінного мікросервісного конвеєра для прогнозування щоденного виторгу магазинів мережі Rossmann»}\\[3.0cm]
-
-    \begin{flushright}
-    \begin{minipage}{0.48\textwidth}
-        Виконав:\\
-        студент групи ФЕІ-43\\
-        Гріджак Олександр\\[0.6cm]
-        Керівник:\\
-        проф. Павлишенко Богдан
-    \end{minipage}
-    \end{flushright}
-
-    \vfill
-    {\bfseries Львів - 2026}
+Міністерство освіти і науки України\\
+Львівський національний університет імені Івана Франка\\
+Факультет електроніки та комп'ютерних технологій
 \end{center}
-\end{titlepage}
 
-% ----------------- СТОРІНКА 2 -----------------
-\section{Мета та постановка задачі}
-Метою лабораторної роботи є проєктування, практична реалізація та тестування завершеного демонстраційного програмного конвеєра машинного навчання для вирішення задачі часового прогнозування щоденного виторгу 100 роздрібних магазинів мережі Rossmann. Система реалізується на основі мікросервісної архітектури з чітким розділенням обов'язків:
-1. Автономний сервіс машинного навчання на базі сучасного фреймворку FastAPI, що виконує синхронне навчання трьох типів моделей (Random Forest, LightGBM, Keras MLP), усунення витоків даних, валідацію на основі часового зрізу, збереження та відтворення артефактів, а також точковий, пакетний та сценарний інференс.
-2. Інтерактивний користувацький вебінтерфейс на базі Streamlit, що взаємодіє з мікросервісом суто через протокол REST API, надає чотири окремі функціональні модулі: дослідницький аналіз даних (EDA), конфігурацію і запуск навчання, порівняльну аналітику моделей та сценарний прогноз виторгу.
-3. Клієнтський аналітичний ноутбук (Jupyter Notebook Client), що демонструє автоматизацію запитів до мікросервісу виключно засобами бібліотеки requests.
+\vspace{4.5cm}
 
-\subsection{Вхідні дані та обмеження предметної області}
-Для навчання та оцінки системи використовуються два набори даних: \texttt{rossm\_train\_df.csv} (73,000 рядків, період 2013-01-01 - 2014-12-31) та \texttt{rossm\_test\_df.csv} (21,200 рядків, період 2015-01-01 - 2015-07-31). Дані містять 100 унікальних магазинів. Відповідно до методичних вказівок, система суворо враховує такі критичні вимоги та правила предметної області:
-1. Часовий розтин даних: заборонено будь-яке перемішування спостережень (shuffling).
-2. Обробка ознаки StateHoliday: зчитується виключно як рядковий тип, оскільки поєднує числові нулі та літерні коди ('0', 'a', 'b', 'c').
-3. Витік цілі через Customers: кількість покупців стає відомою лише після завершення робочого дня. Ця ознака доступна для EDA, але категорично виключена зі списку кандидатних ознак для моделювання.
-4. Дні закриття магазинів: близько 17\% записів є днями з Open = 0 та Sales = 0 (переважно неділі та офіційні свята). Моделі навчаються виключно на відкритих днях (Open = 1), а на етапі інференсу для закритих днів строго повертається нульовий прогноз.
-5. Усунення витоку в ознаці logMonthSales: середня місячна виручка магазину розраховується строго на основі навчального періоду (2013-2014) і переноситься на валідаційні, тестові та майбутні записи.
+\begin{center}
+ПРОЄКТ: SALES FORECASTING DEMO PIPELINE\\
+з дисципліни \textquotedbl Проєкт з розробки системи аналізу даних\textquotedbl\\
+\textquotedbl Побудова мікросервісного конвеєра прогнозування щоденного виторгу магазинів мережі Rossmann на основі FastAPI, Streamlit, Random Forest, LightGBM та Keras MLP\textquotedbl
+\end{center}
 
-% ----------------- СТОРІНКА 3 -----------------
-\section{Архітектура мікросервісної системи}
-Розроблена система побудована відповідно до принципів Clean Architecture та стандарту 12-Factor App. Інтерфейс користувача не містить залежностей від коду машинного навчання, а звертається до бекенду через мережеві HTTP-запити. На рис. 1 наведено протокол наскрізної верифікації виконання та навчання бекенду.
+\vspace{3.0cm}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{terminal_proof_verification.png}
-\caption{Протокол наскрізного виконання тренування та верифікації мікросервісу}
-\end{figure}
-
-\subsection{Модулі системи та структура проєкту}
-Програмний код розміщено в каталозі \texttt{app\_sales\_forecasting} із такою декомпозицією:
-1. \texttt{api/data\_loader.py} - кешоване зчитування CSV-файлів, перерахунок logMonthSales без витоку, побудова бейзлайну та надання метаданих.
-2. \texttt{api/features.py} - капсулювання конвеєра ColumnTransformer, OneHotEncoder(handle\_unknown="ignore") та агрегація важливості ознак.
-3. \texttt{api/models/} - спільний інтерфейс BaseModel та конкретні моделі: \texttt{random\_forest.py}, \texttt{lightgbm\_model.py}, \texttt{keras\_mlp.py}.
-4. \texttt{api/service.py} - сервісний шар, що керує збереженням, навчанням, формуванням часових прогнозів та перевіркою коректності.
-5. \texttt{api/main.py} - маршрутизація ендпоінтів FastAPI, обробка помилок (404, 409, 422), документація OpenAPI Swagger.
-6. \texttt{streamlit\_app/api\_client.py} - ізольований клієнтський клас для взаємодії через REST API.
-7. \texttt{streamlit\_app/pages/} - сторінки 1\_EDA.py, 2\_Model\_Training.py, 3\_Model\_Comparison.py, 4\_Forecasting.py.
-
-% ----------------- СТОРІНКА 4 -----------------
-\section{Дослідницький аналіз даних (EDA)}
-Першим етапом роботи є розробка вебмодуля дослідницького аналізу даних (EDA) у Streamlit, що спирається на референсний блокнот \texttt{nb08\_rossman\_eda.ipynb}. Усі візуалізації створені засобами бібліотеки Plotly для забезпечення інтерактивності (зум, фільтрація, підказки). На рис. 2 продемонстровано інтерфейс розробленої сторінки EDA.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{ui_proof_page1_eda.png}
-\caption{Інтерфейс сторінки 1: Дослідницький аналіз даних (EDA) у Streamlit}
-\end{figure}
-
-\subsection{Ключові спостереження щодо розподілу даних}
-Аналіз даних 100 магазинів виявив такі статистичні закономірності:
-1. Асиметрія виторгу: щоденний виторг Sales має правосторонню асиметрію з середнім значенням близько \$6,420 на відкритий день. Логарифмічне перетворення logSales = log(Sales + 1) наближає розподіл до нормального, стабілізуючи дисперсію помилок регресії.
-2. Вплив промо-акцій (Promo): під час дії акцій виторг магазину зростає в середньому на 35.0\%, що підтверджується порівняльними діаграмами розмаху (box plot).
-3. Категоріальні фактори: магазини типу 'b' демонструють найвищий середній виторг (\$9,800/день) і залишаються відкритими у неділю. Відстань до конкурента (CompetitionDistance) показує помірний нелінійний зв'язок із виручкою.
-
-% ----------------- СТОРІНКА 5 -----------------
-\section{Конвеєр передобробки ознак та моделей}
-Для забезпечення відтворюваності розроблено клас FeaturePreprocessor на основі scikit-learn ColumnTransformer. Він навчається виключно на відкритих днях тренувального набору даних (2013-2014) і зберігається разом із моделлю у форматі joblib.
-
-\begin{table}[H]
-\renewcommand{\arraystretch}{0.85}
-\small
-\caption{Ознаковий простір моделювання часового виторгу Rossmann}
-\begin{tabularx}{\textwidth}{l p{3.2cm} X}
-\toprule
-\textbf{Назва ознаки} & \textbf{Тип обробки} & \textbf{Опис та трансформація} \\
-\midrule
-Promo & Числова & Бінарний прапорець дії рекламної акції (0 або 1) \\
-SchoolHoliday & Числова & Прапорець шкільних канікул у регіоні \\
-logMonthSales & Числова & Чистий логарифм середньомісячного виторгу магазину (з train) \\
-CompetitionDistance & Числова & Відстань до найближчого магазину-конкурента в метрах \\
-Store & Категоріальна (OHE) & Ідентифікатор магазину (1-100) \\
-StateHoliday & Категоріальна (OHE) & Код свята як рядок: '0', 'a', 'b', 'c' \\
-StoreType & Категоріальна (OHE) & Модель роздрібного магазину: 'a', 'b', 'c', 'd' \\
-Assortment & Категоріальна (OHE) & Рівень товарного асортименту: 'a', 'b', 'c' \\
-weekday & Категоріальна (OHE) & День тижня (1 - понеділок, 7 - неділя) \\
-monthday & Категоріальна (OHE) & День календарного місяця (1-31) \\
-month & Категоріальна (OHE) & Календарний місяць спостереження (1-12) \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{Реалізовані архітектури моделей}
-Відповідно до технічного завдання, у мікросервісі реалізовано три сімейства моделей, об'єднаних інтерфейсом BaseModel:
-1. Random Forest (\texttt{RandomForestRegressor}): ансамбль дерев рішень. Параметри: n\_estimators = 100, max\_depth = 15, min\_samples\_leaf = 2. Здійснюється зворотна агрегація важливості One-Hot стовпців до вихідних 11 ознак.
-2. LightGBM (\texttt{LGBMRegressor}): градієнтний бустинг. Параметри: n\_estimators = 500, learning\_rate = 0.1, num\_leaves = 80, max\_depth = 5, colsample\_bytree = 0.7. Реалізовано механізм ранньої зупинки (early stopping) на валідаційному наборі та фіксацію кривої навчання на кожній ітерації.
-3. Keras MLP: повнозв'язна нейронна мережа глибокого навчання (Dense + ReLU + Dropout + Linear Output, оптимізатор Adam, функція втрат MAE). Застосовано StandardScaler як для вхідних векторів, так і для цільової змінної. Фіксується покрокова історія втрат на тренуванні та валідації.
-
-% ----------------- СТОРІНКА 6 -----------------
-\section{Система валідації та Naive Baseline}
-Оцінка моделей здійснюється за схемою, визначеною у методичних вказівках:
-1. Тренувальний спліт: файл 2013-2014 рр. (73,000 записів).
-2. Валідаційний спліт: спостереження 2015 року до 2015-04-01 (9,000 записів). Використовується для налаштування ранньої зупинки та контролю перенавчання.
-3. Тестовий спліт: спостереження 2015 року від 2015-04-01 до 2015-07-31 (12,200 записів). Використовується виключно для фінальної перевірки генералізації.
-
-Метрики оцінюються на відкритих днях за шкалою logSales (RMSE) та за шкалою реального виторгу Sales у доларах за формулами:
-\begin{equation}
-\text{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2}, \quad \text{MAE} = \frac{1}{N}\sum_{i=1}^{N}|y_i - \hat{y}_i|, \quad \text{WAPE} = \frac{\sum |y_i - \hat{y}_i|}{\sum y_i}.
-\end{equation}
-
-Як точку відліку розраховано наївний бейзлайн (Naive Baseline) - середній історичний виторг конкретного магазину для відповідного дня тижня на навчальному періоді. На рис. 3 наведено інтерфейс сторінки 2 для тренування моделей та аналізу діагностичних графіків.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{ui_proof_page2_training.png}
-\caption{Інтерфейс сторінки 2: Налаштування, тренування моделей та криві навчання}
-\end{figure}
-
-% ----------------- СТОРІНКА 7 -----------------
-\section{Порівняльний аналіз навчених моделей}
-Натреновані моделі зберігаються у каталозі \texttt{saved\_models} із повними метаданими. На рис. 4 показано модуль порівняння моделей у Streamlit, де зіставлено характеристики точності та побудовано накладання прогнозного часового ряду на фактичний виторг магазину №1.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{ui_proof_page3_comparison.png}
-\caption{Інтерфейс сторінки 3: Зведена аналітика та накладання часових рядів (Store \#1)}
-\end{figure}
-
-\begin{table}[H]
-\renewcommand{\arraystretch}{0.85}
-\small
-\caption{Підсумкові експериментальні метрики на тестовому спліті (>= 2015-04-01)}
-\begin{tabularx}{\textwidth}{l c c c c c}
-\toprule
-\textbf{Модель} & \textbf{Час трен.} & \textbf{RMSE (Sales)} & \textbf{MAE (Sales)} & \textbf{WAPE} & \textbf{R² Score} \\
-\midrule
-\textbf{LightGBM} & \textbf{3.65 с} & \textbf{\$668.59} & \textbf{\$478.20} & \textbf{7.45\%} & \textbf{0.9210} \\
-Random Forest & 44.27 с & \$676.54 & \$489.15 & 7.62\% & 0.9192 \\
-Keras Deep MLP & 22.98 с & \$722.64 & \$524.80 & 8.18\% & 0.9078 \\
-Naive Baseline & 0.05 с & \$1,890.30 & \$1,420.50 & 22.10\% & 0.3820 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-Усі три навчені моделі перевершують наївний бейзлайн більш ніж у 2.8 раза за метрикою RMSE. Модель LightGBM продемонструвала найкращу комбінацію швидкості навчання (3.65 с) та найвищої узагальнюючої здатності (WAPE 7.45\%, R² 0.9210).
-
-% ----------------- СТОРІНКА 8 -----------------
-\section{Модуль прогнозування та сценарного аналізу}
-Четверта сторінка Streamlit-застосунку надає користувачам два взаємодоповнюючі інструменти часового аналізу:
-1. Holdout Forecast: вибір натренованої моделі, переліку магазинів та діапазону дат у межах 2015 року. Система будує накладений графік фактичних і прогнозних продажів, обчислює помагазинні та агреговані метрики й надає можливість завантаження результатів у CSV-файл.
-2. Scenario Forecast: інтерактивне моделювання майбутнього періоду (наприклад, серпень 2015 р.) для обраного магазину із налаштуванням ознак Promo, SchoolHoliday, StateHoliday та Open.
-
-На рис. 5 продемонстровано розрахунок приросту виторгу (Promo Lift) у розмірі +\$24,470 (+35.0\%) при увімкненні маркетингової акції порівняно з базовим сценарієм.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{ui_proof_page4_forecasting.png}
-\caption{Інтерфейс сторінки 4: Сценарне прогнозування та оцінка приросту виторгу Promo Lift}
-\end{figure}
-
-\subsection{Специфікація REST API мікросервісу}
-Бекенд на FastAPI реалізує такі стандартизовані HTTP-ендпоінти:
-\begin{table}[H]
-\renewcommand{\arraystretch}{0.85}
-\small
-\caption{Специфікація REST API ендпоінтів FastAPI мікросервісу}
-\begin{tabularx}{\textwidth}{l l X c}
-\toprule
-\textbf{Метод} & \textbf{Ендпоінт} & \textbf{Призначення та тіло запиту} & \textbf{Коди} \\
-\midrule
-GET & /health & Перевірка працездатності та список завантажених моделей & 200 \\
-GET & /data/info & Метадані датасету, магазини, спліти, параметри & 200 \\
-POST & /train & Синхронне тренування (тип, гіперпараметри, ознаки) & 200, 422 \\
-GET & /models & Список усіх збережених моделей та їхніх метрик & 200 \\
-GET & /models/\{name\} & Детальна інформація, метрики, learning curve & 200, 404 \\
-DELETE & /models/\{name\} & Видалення моделі та її файлів з диска & 200, 404 \\
-POST & /predict & Точковий щоденний прогноз для одного магазину & 200, 404, 409 \\
-POST & /predict/batch & Пакетний прогноз для списку магазин-днів & 200, 404, 409 \\
-POST & /forecast & Holdout та сценарний прогноз із розрахунком Promo Lift & 200, 404, 409 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-% ----------------- СТОРІНКА 9 -----------------
-\section{Тестування та наскрізна верифікація}
-Надійність програмного конвеєра гарантується комплексом автоматизованих модульних та інтеграційних тестів, реалізованих за допомогою фреймворку \texttt{pytest} у каталозі \texttt{tests/}.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.78\textwidth]{terminal_proof_tests.png}
-\caption{Успішне проходження повного набору тестів (13 passed in 73.77s)}
-\end{figure}
-
-\subsection{Покриття тестів та надійність системи}
-Тестовий набір охоплює всі критичні вимоги методики:
-1. \texttt{test\_customers\_not\_in\_candidate\_features}: підтверджує відсутність витоку через ознаку Customers.
-2. \texttt{test\_state\_holiday\_is\_string}: перевіряє рядковий тип ознаки StateHoliday.
-3. \texttt{test\_log\_month\_sales\_recomputed\_from\_train\_only}: гарантує розрахунок logMonthSales суто на відкритих днях навчальної вибірки.
-4. \texttt{test\_closed\_days\_forecast\_zero}: перевіряє, що для днів з Open = 0 прогноз завжди дорівнює строго 0.0.
-5. Тести моделей (\texttt{test\_models.py}): перевіряють збереження, завантаження та точність для RF, LightGBM та MLP.
-6. Тести API (\texttt{test\_api.py}): валідують статус-коди HTTP: 200 для успішних операцій, 404 для невідомої моделі, 409 при спробі інференсу без натренованих моделей та 422 при некоректних вхідних параметрах.
-7. Стійкість до перезапуску: після повторної ініціалізації ForecastingService усі збережені моделі успішно відновлюються з диска.
-
-\subsection{Автоматизація через Notebook Client}
-У каталозі \texttt{notebooks/client\_demo.ipynb} реалізовано незалежний Python-клієнт, який відтворює повний цикл роботи (health check, читання даних, тренування через POST /train, точковий прогноз та симуляцію сценарію) виключно через мережеві виклики requests без прямого імпорту коду моделей.
-
-% ----------------- СТОРІНКА 10 -----------------
-\section{Висновки}
-У ході виконання лабораторної роботи №2 успішно розроблено, протестовано та розгорнуто повнофункціональний демонстраційний мікросервісний конвеєр для часового прогнозування щоденного виторгу мережі 100 магазинів Rossmann.
-
-Основні результати роботи:
-1. Реалізовано автономний FastAPI мікросервіс, що підтримує тренування моделей Random Forest, LightGBM та Keras MLP, точковий і пакетний інференс, а також сценарне моделювання через стандартні REST-ендпоінти.
-2. Суворо дотримано всі правила запобігання витоку даних: виключено Customers із простору ознак, перераховано logMonthSales строго на навчальному періоді, ізольовано дні закриття магазинів (Open = 0).
-3. Побудовано багатосторінковий вебінтерфейс у Streamlit (EDA, Навчання, Порівняння, Прогнозування) із застосуванням бібліотеки Plotly. Інтерфейс функціонує як незалежний REST-клієнт і не містить імпортів коду машинного навчання.
-4. Проведено порівняльний аналіз трьох моделей: найкращу якість прогнозу та швидкодію продемонстрував алгоритм LightGBM (RMSE \$668.59, WAPE 7.45\%, час тренування 3.65 с проти бейзлайну RMSE \$1,890.30 та WAPE 22.10\%).
-5. Розроблено набір із 13 автоматизованих тестів на базі \texttt{pytest}, які повністю підтвердили коректність бізнес-правил, архітектури та стійкості мікросервісу після перезапуску.
-6. Проєкт організовано у відповідності до академічних стандартів у репозиторії із детальним описом у README.md та підтримкою перемінних середовища (.env).
-
-\vspace{1.5cm}
 \begin{flushright}
-\begin{minipage}{0.5\textwidth}
-    Студент: \underline{\hspace{3.5cm}} (О. Гріджак)\\[0.4cm]
-    Дата виконання: «08» листопада 2026 р.\\[0.4cm]
-    Викладач: \underline{\hspace{3.5cm}} (проф. Б. Павлишенко)
-\end{minipage}
+Виконав:\\
+Студент групи ФЕІ-43\\
+Гріджак Олександр\\
+Перевірив:\\
+проф. Павлишенко Богдан
 \end{flushright}
+
+\vfill
+
+\begin{center}
+Львів 2026
+\end{center}
+\clearpage
+
+% ==================== СТОРІНКА 2 ====================
+\noindent\hspace{1.25cm}\textbf{1. Goal (Мета проєкту):} Створити діючий демонстраційний мікросервісний конвеєр для щоденного часового прогнозування продажів 100 магазинів Rossmann: вебінтерфейс Streamlit, автономний ML-мікросервіс FastAPI та Jupyter-клієнт.
+
+\noindent\hspace{1.25cm}\textbf{Стек технологій:} Python 3.12, FastAPI, Uvicorn, Streamlit, Plotly, pandas, NumPy, scikit-learn, LightGBM, TensorFlow (Keras), joblib, pytest, requests.
+
+\noindent\hspace{1.25cm}\textbf{Репозиторій проєкту:} \url{https://github.com/OleksandrHridzhak/data-analysis-system-project/tree/main/lab2}
+
+\vspace{1pt}
+\begin{center}
+\textbf{Before Coding: Попереднє проєктування та структура системи}
+\end{center}
+\vspace{1pt}
+
+\noindent 1.1. Архітектурне розділення: Streamlit взаємодіє із сервісом виключно через мережевий REST API і ніколи не імпортує код машинного навчання. Мікросервіс FastAPI відповідає за навчання трьох моделей (Random Forest, LightGBM, Keras MLP), збереження ваг та інференс.
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{data_preview_structure_tree.png}
+\vspace{1pt}
+\\{\small Рис. 1. Реальна файлова ієрархія та призначення модулів репозиторію проєкту}
+\end{center}
+
+\vspace{1pt}
+\noindent 1.2. Обмеження та правила витоку даних: Customers виключено з ознак (витік цілі); logMonthSales перераховується строго з train; у неділі та святкові дні закриття (Open = 0) модель строго прогнозує 0.0.
+
+\clearpage
+
+% ==================== СТОРІНКА 3 ====================
+\begin{center}
+\textbf{Data Preparation: Корпус Rossmann та усунення витоку даних}
+\end{center}
+\vspace{1pt}
+
+Сформовано стандартизований набір даних із 100 магазинів: rossm\_train\_df.csv (73 000 рядків, 2013-01-01 - 2014-12-31) та rossm\_test\_df.csv (21 200 рядків, 2015-01-01 - 2015-07-31). Перевірено часовий розтин без перемішування спостережень (таблиця 1, рис. 2, рис. 3).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|c|}
+\hline
+\centering\textbf{Спліт} & \centering\textbf{Діапазон дат} & \centering\textbf{Кількість рядків} & \centering\textbf{Магазинів} & \centering\textbf{Частка закритих (Open=0)}\cr
+\hline
+Train & 2013-01-01 .. 2014-12-31 & 73,000 & 100 & 16.55\%\cr
+\hline
+Validation & 2015-01-01 .. 2015-03-31 & 9,000 & 100 & 16.11\%\cr
+\hline
+Test & 2015-04-01 .. 2015-07-31 & 12,200 & 100 & 16.11\%\cr
+\hline
+Разом & 2013-01-01 .. 2015-07-31 & 94,200 & 100 & 16.45\%\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 1. Статистичні параметри часових сплітів набору даних Rossmann
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{data_preview_rossm_csv.png}
+\vspace{1pt}
+\\{\small Рис. 2. Фрагмент сформованого корпусу продажів data/rossm\_train\_df.csv (18 колонок)}
+\end{center}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{terminal_proof_verification.png}
+\vspace{1pt}
+\\{\small Рис. 3. Протокол консольної верифікації моделей та перевірки правила Open = 0}
+\end{center}
+
+\clearpage
+
+% ==================== СТОРІНКА 4 ====================
+\begin{center}
+\textbf{Data Exploration (EDA): Інтерактивний аналіз часових рядів}
+\end{center}
+\vspace{1pt}
+
+Сторінка 1 вебінтерфейсу Streamlit реалізує інтерактивний аналіз даних на базі Plotly (nb08). Забезпечено синхронну фільтрацію графіків за діапазоном дат і переліком обраних магазинів (таблиця 2, рис. 4).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|c|>{\raggedright\arraybackslash}X|}
+\hline
+\centering\textbf{Група ознак} & \centering\textbf{К-сть} & \centering\textbf{Тип трансформації} & \centering\textbf{Змінні у просторі ознак}\cr
+\hline
+Числові календаря та акцій & 4 & Median Impute + Passthrough & Promo, SchoolHoliday, logMonthSales, CompetitionDistance\cr
+\hline
+Категоріальні магазину & 4 & SimpleImputer + OneHot & Store (1-100), StoreType (a,b,c,d), Assortment (a,b,c)\cr
+\hline
+Категоріальні часу і свят & 3 & SimpleImputer + OneHot & StateHoliday (0,a,b,c), weekday (1-7), month (1-12)\cr
+\hline
+Виключені (Target Leakage) & 1 & Повна заборона для ML & Customers (відомий лише наприкінці дня)\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 2. Структура ознакового простору та правила попередньої обробки
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{ui_proof_page1_eda.png}
+\vspace{1pt}
+\\{\small Рис. 4. Інтерфейс сторінки 1 (EDA): розподіли Sales/logSales, щотижневий тренд, boxplot за Promo}
+\end{center}
+
+\vspace{2pt}
+\noindent Аналіз засвідчив, що логарифмування logSales = log(Sales+1) стабілізує дисперсію, а маркетингова акція Promo забезпечує приріст продажів на 35\% у робочі дні тижня.
+
+\clearpage
+
+% ==================== СТОРІНКА 5 ====================
+\begin{center}
+\textbf{Model Training: Навчання та оцінювання через FastAPI REST API}
+\end{center}
+\vspace{1pt}
+
+Модуль Training вебінтерфейсу надсилає POST-запит на ендпоінт /train із параметрами алгоритму. Навчання виконується тільки після натискання кнопки Train Model. Обчислюються метрики train, val, test проти Naive Baseline (таблиця 3, рис. 5).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.90}
+\begin{tabularx}{\textwidth}{|l|c|c|c|c|}
+\hline
+\centering\textbf{Модель / Архітектура} & \centering\textbf{Час трен.} & \centering\textbf{RMSE (Sales)} & \centering\textbf{WAPE, \%} & \centering\textbf{R² Score}\cr
+\hline
+Naive Baseline (Mean Store/Weekday) & 0.05 с & \$1,890.30 & 22.10\% & 0.3820\cr
+\hline
+Keras Deep MLP (Dense [256, 128], Adam) & 22.98 с & \$722.64 & 8.18\% & 0.9078\cr
+\hline
+RandomForestRegressor (100 trees, depth 15) & 44.27 с & \$676.54 & 7.62\% & 0.9192\cr
+\hline
+LGBMRegressor (500 trees, lr 0.1, tuned) & 3.65 с & \$668.59 & 7.45\% & 0.9210\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 3. Порівняння результатів оцінки регресійних алгоритмів на вибірці тесту (12 200 днів)
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{ui_proof_page2_training.png}
+\vspace{1pt}
+\\{\small Рис. 5. Інтерфейс сторінки 2: Налаштування гіперпараметрів, метрики, важливість ознак та криві втрат}
+\end{center}
+
+\vspace{2pt}
+\noindent Застосування градієнтного бустингу LightGBM дозволило скоротити час навчання до 3.65 с та зменшити середньоквадратичну похибку майже утричі порівняно з бейзлайном.
+
+\clearpage
+
+% ==================== СТОРІНКА 6 ====================
+\begin{center}
+\textbf{Model Diagnostics: Аналіз залишків та криві навчання}
+\end{center}
+\vspace{1pt}
+
+Для діагностики генералізації зафіксовано поітераційні втрати train/validation loss у LightGBM та епохи навчання у Keras MLP. Для деревних моделей реалізовано агрегацію важливості One-Hot стовпців назад до вихідних ознак (рис. 6, рис. 7).
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.88\textwidth]{model_metrics_chart.png}
+\vspace{1pt}
+\\{\small Рис. 6. Порівняння похибок RMSE та MAE трьох моделей проти наївного бейзлайну на тесті}
+\end{center}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.88\textwidth]{ui_proof_page2_training.png}
+\vspace{1pt}
+\\{\small Рис. 7. Діагностичні графіки: розсіювання Actual vs Predicted та розподіл залишків регресії}
+\end{center}
+
+\vspace{2pt}
+\noindent Провідними факторами впливу на виторг є наявність акції Promo (важливість 34\%), показник logMonthSales (28\%), день тижня weekday (14\%) та відстань до конкурента CompetitionDistance (10\%).
+
+\clearpage
+
+% ==================== СТОРІНКА 7 ====================
+\begin{center}
+\textbf{Model Comparison: Зведене порівняння та накладання рядів}
+\end{center}
+\vspace{1pt}
+
+Сторінка 3 вебінтерфейсу дозволяє зіставляти метрики кількох збережених моделей на обраному спліті (train, val, test) та будувати накладений часовий ряд фактичних і прогнозних продажів (таблиця 4, рис. 8).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\textwidth}{|l|c|c|c|c|c|}
+\hline
+\centering\textbf{Модель} & \centering\textbf{Спліт} & \centering\textbf{RMSE (Sales)} & \centering\textbf{MAE (Sales)} & \centering\textbf{WAPE, \%} & \centering\textbf{R²}\cr
+\hline
+LightGBM\_Default & Validation & \$637.19 & \$451.80 & 7.04\% & 0.9285\cr
+\hline
+LightGBM\_Default & Test & \$668.59 & \$478.20 & 7.45\% & 0.9210\cr
+\hline
+RandomForest\_Default & Validation & \$644.75 & \$462.10 & 7.21\% & 0.9268\cr
+\hline
+RandomForest\_Default & Test & \$676.54 & \$489.15 & 7.62\% & 0.9192\cr
+\hline
+Keras\_MLP\_Default & Validation & \$681.83 & \$495.40 & 7.72\% & 0.9180\cr
+\hline
+Keras\_MLP\_Default & Test & \$722.64 & \$524.80 & 8.18\% & 0.9078\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 4. Деталізоване зіставлення точності моделей на валідаційному та тестовому сплітах
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{ui_proof_page3_comparison.png}
+\vspace{1pt}
+\\{\small Рис. 8. Інтерфейс сторінки 3: Зведена аналітика та накладання часових рядів (Store \#1)}
+\end{center}
+
+\vspace{2pt}
+\noindent Накладений часовий ряд наочно підтверджує синхронність динаміки прогнозів обох лідерів (LightGBM та Random Forest) із фактом та чітке дотримання нульового прогнозу у недільні дні закриття.
+
+\clearpage
+
+% ==================== СТОРІНКА 8 ====================
+\begin{center}
+\textbf{Forecasting: Holdout прогноз та сценарний аналіз Promo Lift}
+\end{center}
+\vspace{1pt}
+
+Модуль прогнозування (сторінка 4) забезпечує два режими: ретроспективний аналіз 2015 року з експортом у CSV та What-If сценарну симуляцію майбутнього виторгу з оцінкою маркетингового приросту Promo Lift (таблиця 5, рис. 9).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\textwidth}{|l|l|c|>{\raggedright\arraybackslash}X|}
+\hline
+\centering\textbf{Метод} & \centering\textbf{Маршрут API} & \centering\textbf{Коди} & \centering\textbf{Призначення та операційні параметри}\cr
+\hline
+GET & /health & 200 & Моніторинг стану сервісу та доступних навчених моделей\cr
+\hline
+GET & /data/info & 200 & Метадані 100 магазинів, діапазони дат, кандидатні ознаки\cr
+\hline
+POST & /train & 200, 422 & Синхронний запуск навчання обраної моделі з параметрами\cr
+\hline
+GET & /models & 200 & Отримання зведеного реєстру натренованих моделей та метрик\cr
+\hline
+POST & /predict & 200, 404, 409 & Точковий щоденний прогноз виторгу для одного магазину\cr
+\hline
+POST & /forecast & 200, 404, 409 & Holdout або сценарний прогноз з інтерактивними оверрайдами\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 5. Специфікація стандартизованих ендпоінтів FastAPI мікросервісу
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{ui_proof_page4_forecasting.png}
+\vspace{1pt}
+\\{\small Рис. 9. Інтерфейс сторінки 4: Сценарне моделювання та оцінка впливу промо-акцій (Promo Lift +35.0\%)}
+\end{center}
+
+\vspace{2pt}
+\noindent Завдяки сценарному аналізу для магазину №1 на періоді 1-14 серпня спрогнозовано приріст виручки +\$24,470 при переході на режим промо, що підтверджує практичну цінність PoC для бізнесу.
+
+\clearpage
+
+% ==================== СТОРІНКА 9 ====================
+\begin{center}
+\textbf{Verification Checklist: Протокол перевірки конвеєра}
+\end{center}
+\vspace{1pt}
+
+Відповідно до технічного завдання проведено комплексну наскрізну верифікацію роботи мікросервісу, тестів pytest та клієнтського блокнота (таблиця 6, рис. 10, рис. 11).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.84}
+\begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}X|c|>{\raggedright\arraybackslash}X|}
+\hline
+\centering\textbf{Критерій технічного завдання} & \centering\textbf{Статус} & \centering\textbf{Фактичне підтвердження / Доказ}\cr
+\hline
+1. Tests pass, API starts, /health responds & Успішно & 13 тестів pytest пройдено за 73.77 с; /health повертає 200\cr
+\hline
+2. 3 model types train on full data & Успішно & Навчено RF (44 с), LightGBM (3.6 с), MLP (23 с) на 73k рядків\cr
+\hline
+3. Single, batch, holdout, scenario work & Успішно & Перевірено ендпоінти /predict, /predict/batch, /forecast\cr
+\hline
+4. Closed days (Open=0) forecast 0.0 & Успішно & Суворе дотримання нульового виторгу на закритих днях\cr
+\hline
+5. Models survive service restart & Успішно & Автоматичне завантаження артефактів із saved\_models/\cr
+\hline
+6. Streamlit 4 pages render without error & Успішно & Всі 4 модулі функціонують без імпорту коду ML\cr
+\hline
+7. Notebook client runs top to bottom & Успішно & client\_demo.ipynb відтворює конвеєр виключно через REST\cr
+\hline
+8. Read-only data/, code/, prompts/ intact & Успішно & Вхідні набори даних і референсні матеріали не модифіковано\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 6. Верифікаційний протокол відповідності критеріям технічного завдання
+\end{center}
+}
+\end{minipage}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.72\textwidth, height=3.4cm, keepaspectratio]{terminal_proof_tests.png}
+\vspace{1pt}
+\\{\small Рис. 10. Протокол успішного проходження набору з 13 автоматизованих тестів pytest}
+\end{center}
+
+\vspace{1pt}
+\begin{center}
+\includegraphics[width=0.72\textwidth, height=3.4cm, keepaspectratio]{terminal_proof_verification.png}
+\vspace{1pt}
+\\{\small Рис. 11. Підсумковий консольний протокол наскрізної валідації verify\_and\_train.py}
+\end{center}
+
+\clearpage
+
+% ==================== СТОРІНКА 10 ====================
+\begin{center}
+\textbf{Реєстр інженерних тверджень та підсумковий висновок}
+\end{center}
+\vspace{1pt}
+
+На основі розробленої системи сформовано реєстр перевірки інженерних гіпотез та спростування можливих галюцинацій щодо структури конвеєра (таблиця 7).
+
+\vspace{1pt}
+\noindent\begin{minipage}{\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{0.88}
+\begin{tabularx}{\textwidth}{|c|>{\raggedright\arraybackslash}X|c|c|>{\raggedright\arraybackslash}X|}
+\hline
+\centering\textbf{ID} & \centering\textbf{Інженерне твердження} & \centering\textbf{Рівень} & \centering\textbf{Статус} & \centering\textbf{Коментар верифікації}\cr
+\hline
+C01 & Customers спричиняє витік цільової змінної & V1 & verified & Підтверджено: виключено зі списку ознак моделювання\cr
+\hline
+C02 & logMonthSales з повного періоду містить витік тесту & V1 & verified & Перераховано строго на train open days (2013-2014)\cr
+\hline
+C03 & Моделі перевершують наївний бейзлайн > 2 разів & V3 & verified & RMSE LightGBM \$668 проти бейзлайну \$1,890 (у 2.8 раза)\cr
+\hline
+C04 & Всі 3 моделі ділять уніфікований інтерфейс & V2 & verified & Реалізовано спільні методи fit, predict, save, load\cr
+\hline
+C05 & Streamlit потребує прямого імпорту коду ML & V4 & rejected & Спростовано: Streamlit працює суто через REST API\cr
+\hline
+C06 & Для днів закриття модель має навчатися з нуля & V2 & rejected & Спростовано: навчання на Open=1, для Open=0 строго 0.0\cr
+\hline
+\end{tabularx}
+\vspace{1pt}
+\begin{center}
+\small Таблиця 7. Реєстр тверджень claims та інженерна верифікація гіпотез
+\end{center}
+}
+\end{minipage}
+
+\vspace{6pt}
+\noindent\textbf{Висновок:}
+
+У ході виконання лабораторної роботи №2 з дисципліни \textquotedbl Проєкт з розробки системи аналізу даних\textquotedbl~було спроєктовано та реалізовано повнофункціональний демонстраційний мікросервісний конвеєр для щоденного прогнозування виторгу мережі 100 магазинів Rossmann.
+
+Сформовано корпуси даних rossm\_train\_df.csv (73 000 записів) та rossm\_test\_df.csv (21 200 записів) із суворим дотриманням часового розтину та усуненням ризиків витоку даних: Customers вилучено з ознак, logMonthSales перераховано суто на навчальному періоді, а дні закриття магазинів (Open = 0) ізольовано з гарантованим поверненням нульового виторгу. Розроблено автономний FastAPI мікросервіс, який реалізує стандартизовані REST-ендпоінти (/health, /data/info, /train, /models, /predict, /forecast) та спільний інтерфейс для моделей Random Forest, LightGBM та Keras MLP.
+
+Найвищу якість прогнозування продемонстрував алгоритм градієнтного бустингу LightGBM (RMSE \$668.59, WAPE 7.45\%, R² 0.9210 за час навчання 3.65 с проти наївного бейзлайну RMSE \$1,890.30 та WAPE 22.10\%). Створено 4-сторінковий клієнтський вебінтерфейс у Streamlit на базі інтерактивних візуалізацій Plotly та клієнтський Jupyter-блокнот client\_demo.ipynb. Надійність системи підтверджено повним проходженням комплексу з 13 автоматизованих тестів pytest та перевіркою збереження і відновлення артефактів після перезапуску мікросервісу.
 
 \end{document}

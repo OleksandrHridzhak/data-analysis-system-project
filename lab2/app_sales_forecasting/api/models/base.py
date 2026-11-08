@@ -87,3 +87,4 @@ class BaseModel(ABC):
     def get_learning_curve(self) -> Optional[Dict[str, List[float]]]:
         """Returns per-iteration train and validation loss, or None."""
         return None
+

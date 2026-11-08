@@ -65,3 +65,4 @@ class RandomForestModel(BaseModel):
         inst.estimator = estimator
         inst.is_trained = True
         return inst
+

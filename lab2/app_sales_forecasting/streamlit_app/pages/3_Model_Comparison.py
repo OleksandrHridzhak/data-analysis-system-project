@@ -134,3 +134,4 @@ if st.button("📊 Відобразити часовий графік прогн
             template="plotly_white"
         )
         st.plotly_chart(fig_overlay, use_container_width=True)
+

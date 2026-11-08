@@ -124,3 +124,4 @@ class ForecastResponse(BaseModel):
     per_store_metrics: Optional[Dict[str, Dict[str, float]]] = None
     aggregate_metrics: Optional[Dict[str, float]] = None
     has_actuals: bool = False
+

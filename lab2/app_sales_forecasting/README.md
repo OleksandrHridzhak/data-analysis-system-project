@@ -156,3 +156,4 @@ curl -X POST http://127.0.0.1:8000/forecast \
 - `{model_name}_mlp.keras` та `{model_name}_mlp_scalers.joblib` — архітектура та скейлери Keras MLP.
 - `{model_name}_preprocessor.joblib` — `ColumnTransformer` препроцесор ознак.
 - `{model_name}_meta.json` — метадані, метрики, криві навчання та важливість ознак.
+

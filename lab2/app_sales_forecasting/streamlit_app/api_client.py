@@ -104,3 +104,4 @@ class SalesForecastingAPIClient:
         resp = requests.post(f"{self.base_url}/forecast", json=payload, timeout=60)
         resp.raise_for_status()
         return resp.json()
+

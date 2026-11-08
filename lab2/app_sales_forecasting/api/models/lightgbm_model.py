@@ -102,3 +102,4 @@ class LightGBMModel(BaseModel):
         inst.evals_result_ = data.get("evals_result", {})
         inst.is_trained = True
         return inst
+

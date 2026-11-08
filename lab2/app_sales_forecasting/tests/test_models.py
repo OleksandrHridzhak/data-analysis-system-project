@@ -87,3 +87,4 @@ def test_keras_mlp_roundtrip(dummy_data, tmp_path):
     loaded = KerasMLPModel.load(str(tmp_path), "mlp_test")
     preds_loaded = loaded.predict(X)
     assert np.allclose(preds, preds_loaded, atol=1e-3)
+

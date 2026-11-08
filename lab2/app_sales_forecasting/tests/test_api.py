@@ -147,3 +147,4 @@ def test_full_api_workflow_train_predict_forecast_delete():
 
     # Verify deleted
     assert client.get("/models/api_test_rf").status_code == 404
+

@@ -185,3 +185,4 @@ with c_comp:
         log_x=True, opacity=0.6
     )
     st.plotly_chart(fig_comp, use_container_width=True)
+
